@@ -280,6 +280,16 @@ namespace ctpl::py {
             return shared_from_this();
         }
 
+        std::shared_ptr<GraphBuilder> withSideA(const std::vector<vertex_t>& v) {
+            impl_->withSideA(v);
+            return shared_from_this();
+        }
+
+        std::shared_ptr<GraphBuilder> withSideB(const std::vector<vertex_t>& v) {
+            impl_->withSideB(v);
+            return shared_from_this();
+        }
+
         const std::unique_ptr<detail::IBuilder> &impl() const {
             return impl_;
         }
@@ -458,7 +468,9 @@ PYBIND11_MODULE(ctpl_py, m) {
             .def(pybind11::init<GraphDir, GraphWeight>())
             .def(pybind11::init<GraphTypes>())
             .def("withEdge", &GraphBuilder::withEdge)
-            .def("withEdge", &GraphBuilder::withEdgeW);
+            .def("withEdge", &GraphBuilder::withEdgeW)
+            .def("withSideA", &GraphBuilder::withSideA)
+            .def("withSideB", &GraphBuilder::withSideB);
 
     pybind11::class_<Graph, std::shared_ptr<Graph>>(m, "Graph")
             .def(pybind11::init<std::shared_ptr<GraphBuilder>>())

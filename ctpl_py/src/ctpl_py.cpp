@@ -2,6 +2,7 @@
 #include <ctpl/game/Round.h>
 #include <ctpl/game/outerplanar/DividedGraph.h>
 #include <ctpl/util/assert.h>
+#include <ctpl/graph/algo.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
@@ -47,6 +48,8 @@ namespace ctpl::py {
             virtual void addEdge(vertex_t u, vertex_t v, EdgeProps e) = 0;
 
             virtual void removeEdge(vertex_t u, vertex_t v) = 0;
+
+            virtual std::optional<EdgeProps> getEdgeProps(vertex_t u, vertex_t v) = 0;
 
             virtual const std::vector<vertex_t> &sideA() {
                 throw std::runtime_error("side A getter is not implemented");
@@ -104,6 +107,22 @@ namespace ctpl::py {
 
             void removeEdge(vertex_t u, vertex_t v) override {
                 graph_.removeEdge(u, v);
+            }
+
+            std::optional<EdgeProps> getEdgeProps(vertex_t u, vertex_t v) override {
+                if constexpr (has_prop<Weighted<weight_t>, edge_props_t>) {
+                    std::optional<edge_props_t> props = graph_.getEdgeProps(u, v);
+                    if (!props) {
+                        return {};
+                    }
+
+                    return EdgeProps{
+                            .weight = static_cast<Weighted<weight_t> &>(*props).weight
+                    };
+
+                } else {
+                    return std::nullopt;
+                }
             }
 
             const std::vector<vertex_t> &sideA() override {
@@ -265,6 +284,10 @@ namespace ctpl::py {
             return impl_->isEdgeBelongs(u, v);
         }
 
+        std::optional<detail::EdgeProps> getEdgeProps(vertex_t u, vertex_t v) {
+            return impl_->getEdgeProps(u, v);
+        }
+
         void addEdge(vertex_t u, vertex_t v, const pybind11::dict &edge_props) {
             impl_->addEdge(u, v, detail::EdgeProps::fromDict(edge_props));
         }
@@ -408,7 +431,8 @@ PYBIND11_MODULE(ctpl_py, m) {
             .def("addEdge", &Graph::addEdge)
             .def("removeEdge", &Graph::removeEdge)
             .def("sideA", &Graph::sideA)
-            .def("sideB", &Graph::sideB);
+            .def("sideB", &Graph::sideB)
+            .def("getEdgeProps", &Graph::getEdgeProps);
 
     pybind11::class_<ITraveller, PyTraveller, std::shared_ptr<ITraveller>>(m, "ITraveller")
             .def(pybind11::init<>())

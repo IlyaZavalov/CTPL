@@ -46,6 +46,16 @@ namespace ctpl {
             return it != adj_lists_[u].end() && it->v == v;
         }
 
+        std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const override {
+            auto it = std::lower_bound(adj_lists_[u].begin(), adj_lists_[u].end(), [](const AdjVertex& lhs, const AdjVertex& rhs) {
+                return lhs.v < rhs.v;
+            });
+
+            if (it == adj_lists_[u].end() || it->v != v) {
+                return *it;
+            }
+        }
+
         void visitAdjacentVertices(vertex_t vertex, const Visitor& visitor) const override {
             CTPL_ASSERT(0 <= vertex && vertex < adj_lists_.size(), "vertex number is out of range");
             for (const AdjVertex& adj : adj_lists_[vertex]) {

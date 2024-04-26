@@ -3,6 +3,7 @@
 #include "Edge.h"
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 namespace ctpl {
     /**
@@ -23,5 +24,7 @@ namespace ctpl {
         virtual void visitAdjacentVertices(vertex_t vertex, const Visitor &visitor) const = 0;
 
         virtual bool isEdgeBelongs(vertex_t u, vertex_t v) const = 0;
+
+        virtual std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const = 0;
     };
 }

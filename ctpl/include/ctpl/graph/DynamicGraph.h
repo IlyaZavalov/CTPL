@@ -26,6 +26,16 @@ namespace ctpl {
             return false;
         }
 
+        std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const override {
+            if (auto it = graph_.find(u); it != graph_.end()) {
+                if (auto it2 = it->second.find(v); it2 != it->second.end()) {
+                    return it2->second;
+                }
+            }
+
+            return std::nullopt;
+        }
+
         void visitAdjacentVertices(vertex_t vertex, const Visitor& visitor) const override {
             if (auto it = graph_.find(vertex); it != graph_.end()) {
                 for (const auto& [v, props] : it->second) {

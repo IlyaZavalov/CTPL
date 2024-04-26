@@ -5,10 +5,11 @@
 namespace ctpl {
 
     template<typename... Args>
-    struct EdgeProps : Args... {
+    struct EdgeProps : Args ... {
     };
 
-    struct RuntimeEdgeProps{};
+    struct RuntimeEdgeProps {
+    };
 
     template<typename prop_t, typename props_t>
     static constexpr bool has_prop = std::is_base_of_v<prop_t, props_t>;
@@ -37,9 +38,39 @@ namespace ctpl {
         weight_t weight;
     };
 
-    struct Directed {};
+    struct Directed {
+    };
 
-    struct Undirected {};
+    struct Undirected {
+    };
 
-    struct Unweighted {};
+    struct Unweighted {
+    };
+
+    template<typename T>
+    struct IsWeighted {
+        static constexpr bool value = false;
+    };
+
+    template<typename weight_t>
+    struct IsWeighted<Weighted<weight_t>> {
+        using underlying_type = weight_t;
+        static constexpr bool value = true;
+    };
+
+    template<typename... Args>
+    struct IsPropsWeighted;
+
+    template<>
+    struct IsPropsWeighted<> {
+        static constexpr bool value = false;
+        using underlying_type = std::nullopt_t;
+    };
+
+    template<typename T, typename... Args>
+    struct IsPropsWeighted<EdgeProps<T, Args...>> {
+        static constexpr bool value = IsWeighted<T>::value || IsPropsWeighted<EdgeProps<Args...>>::value;
+        using underlying_type = std::conditional<IsWeighted<T>::value, typename IsWeighted<T>::underlying_type, typename IsPropsWeighted<EdgeProps<Args...>>::underlying_type>;
+    };
+
 }

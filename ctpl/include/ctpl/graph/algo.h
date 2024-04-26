@@ -1,0 +1,125 @@
+#pragma once
+
+#include <ctpl/graph/IGraph.h>
+#include <concepts>
+#include <limits>
+#include <optional>
+#include <queue>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <stack>
+
+namespace ctpl {
+
+    template<
+            typename vertex_t,
+            typename edge_props_t,
+            std::invocable<vertex_t> Visitor,
+            std::invocable<vertex_t> IsVisitedCallback,
+            std::invocable<vertex_t, vertex_t> SetVisitedCallback
+    >
+    void dfsCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initialVertex,
+                   Visitor &&visitor, IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited) {
+        std::stack<vertex_t> stack;
+        stack.push(initialVertex);
+        set_visited(initialVertex, initialVertex);
+
+        while (!stack.empty()) {
+            auto u = stack.top();
+            stack.pop();
+            visitor(u);
+            graph.visitAdjacentVertices(u, [&](vertex_t, vertex_t v, edge_props_t) {
+                if (is_visited(v)) {
+                    return true;
+                }
+                stack.push(v);
+                set_visited(u, v);
+                return true;
+            });
+        }
+    }
+
+    template<
+            typename vertex_t,
+            typename edge_props_t,
+            std::invocable<vertex_t> Visitor,
+            std::invocable<vertex_t> IsVisitedCallback,
+            std::invocable<vertex_t, vertex_t> SetVisitedCallback
+    >
+    void bfsCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initialVertex,
+                   Visitor &&visitor, IsVisitedCallback &&isVisited, SetVisitedCallback &&setVisited) {
+        std::queue<vertex_t> stack;
+        stack.push(initialVertex);
+        setVisited(initialVertex, initialVertex);
+
+        while (!stack.empty()) {
+            auto u = stack.top();
+            stack.pop();
+            visitor(u);
+            graph.visitAdjacentVertices(u, [&](vertex_t, vertex_t v, edge_props_t) {
+                if (isVisited(v)) {
+                    return true;
+                }
+                stack.push(v);
+                setVisited(u, v);
+                return true;
+            });
+        }
+    }
+
+    template<
+            typename vertex_t,
+            typename edge_props_t,
+            std::invocable<vertex_t> IsVisitedCallback,
+            std::invocable<vertex_t, vertex_t> SetVisitedCallback,
+            std::invocable<vertex_t> SetDistCallback
+    >
+    void dijkstraCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex,
+                        IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited, SetDistCallback &&set_dist) {
+        using weight_t = IsPropsWeighted<edge_props_t>::underlying_type;
+        if constexpr (std::is_same_v<weight_t, std::nullopt_t>) {
+            return bfsCustom(graph, initial_vertex, std::forward<IsVisitedCallback>(is_visited),
+                             std::forward<SetVisitedCallback>(set_visited), std::forward<SetDistCallback>(set_dist));
+        } else {
+            struct PQVertex {
+                vertex_t u;
+                vertex_t v;
+                weight_t dist;
+
+                bool operator<=>(const PQVertex &other) const {
+                    return dist <=> other.dist;
+                }
+            };
+
+            std::priority_queue<PQVertex, std::vector<PQVertex>, std::greater<PQVertex>> pq;
+            pq.push({
+                            .u = initial_vertex,
+                            .v = initial_vertex,
+                            .dist = 0
+                    });
+
+            while (!pq.empty()) {
+                auto [u, v, dist] = pq.top().u;
+                pq.pop();
+                if (is_visited(v)) {
+                    continue;
+                }
+
+                set_visited(u, v);
+                set_dist(dist);
+                graph.visitAdjacentVertices(v, [&](vertex_t u1, vertex_t v1, Weighted<weight_t> w) -> bool {
+                    if (is_visited(v)) {
+                        return true;
+                    }
+                    pq.push({
+                                    .u = u1,
+                                    .v = v1,
+                                    .dist = dist + w.weight
+                            });
+                    return true;
+                });
+            }
+        }
+    }
+}

@@ -213,11 +213,23 @@ namespace ctpl::py {
             }
 
             void withSideA(const std::vector<vertex_t> &side) override {
-                throw std::runtime_error("unimplemented");
+                if constexpr (std::is_same_v<builder_impl_t, ::ctpl::game::DividedOuterplanarBuilder>) {
+                    static_cast<::ctpl::game::DividedOuterplanarBuilder&>(builder_).withSideA(side);
+                }
+                else {
+                    throw std::runtime_error("unimplemented");
+                }
+                CTPL_UNREACHABLE();
             }
 
             void withSideB(const std::vector<vertex_t> &side) override {
-                throw std::runtime_error("unimplemented");
+                if constexpr (std::is_same_v<builder_impl_t, ::ctpl::game::DividedOuterplanarBuilder>) {
+                    static_cast<::ctpl::game::DividedOuterplanarBuilder&>(builder_).withSideB(side);
+                }
+                else {
+                    throw std::runtime_error("unimplemented");
+                }
+                CTPL_UNREACHABLE();
             }
 
         private:

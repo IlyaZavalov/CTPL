@@ -214,7 +214,7 @@ namespace ctpl::py {
 
             void withSideA(const std::vector<vertex_t> &side) override {
                 if constexpr (std::is_same_v<builder_impl_t, ::ctpl::game::DividedOuterplanarBuilder>) {
-                    static_cast<::ctpl::game::DividedOuterplanarBuilder&>(builder_).withSideA(side);
+                    builder_.template withSideB<decltype(side)>(side);
                 }
                 else {
                     throw std::runtime_error("unimplemented");
@@ -224,7 +224,7 @@ namespace ctpl::py {
 
             void withSideB(const std::vector<vertex_t> &side) override {
                 if constexpr (std::is_same_v<builder_impl_t, ::ctpl::game::DividedOuterplanarBuilder>) {
-                    static_cast<::ctpl::game::DividedOuterplanarBuilder&>(builder_).withSideB(side);
+                    builder_.template withSideB<decltype(side)>(side);
                 }
                 else {
                     throw std::runtime_error("unimplemented");

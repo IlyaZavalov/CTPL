@@ -9,12 +9,12 @@
 using namespace ctpl;
 
 namespace test {
-    std::mt19937& rng() {
+    inline std::mt19937& rng() {
         static std::mt19937 rng(std::chrono::system_clock::now().time_since_epoch().count());
         return rng;
     }
 
-    using vertex_t = uint32_t;
+    using vertex_t = int;
     using AdjMatrix = std::vector<std::vector<bool>>;
     template<typename props_t>
     using Builder = GraphBuilder<vertex_t, props_t>;

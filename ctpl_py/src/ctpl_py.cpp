@@ -59,6 +59,10 @@ namespace ctpl::py {
                 throw std::runtime_error("side B getter is not implemented");
             }
 
+            virtual std::vector<vertex_t> shortestPath(vertex_t s, vertex_t t) = 0;
+
+            virtual std::optional<weight_t> shortestPathLength(vertex_t s, vertex_t t) = 0;
+
             virtual ~IGraph() = default;
         };
 
@@ -141,6 +145,27 @@ namespace ctpl::py {
                     IGraph::sideB();
                 }
                 CTPL_UNREACHABLE();
+            }
+
+            std::vector<vertex_t> shortestPath(vertex_t s, vertex_t t) override {
+                if constexpr (IsPropsWeighted<edge_props_t>::value) {
+                    return ::ctpl::shortestPath(graph_, s, t);
+                }
+                else {
+                    return {};
+                }
+            }
+
+            std::optional<weight_t> shortestPathLength(vertex_t s, vertex_t t) override {
+                if constexpr (IsPropsWeighted<edge_props_t>::value) {
+                    if (auto w = ::ctpl::dijkstra(graph_, s, t)) {
+                        return *w;
+                    }
+                    return std::nullopt;
+                }
+                else {
+                    return std::nullopt;
+                }
             }
 
         private:
@@ -311,6 +336,14 @@ namespace ctpl::py {
             return impl_->sideB();
         }
 
+        auto shortestPath(vertex_t s, vertex_t t) const {
+            return impl_->shortestPath(s, t);
+        }
+
+        auto shortestPathLength(vertex_t s, vertex_t t) const {
+            return impl_->shortestPathLength(s, t);
+        }
+
     private:
         std::unique_ptr<detail::IGraph> impl_;
     };
@@ -432,7 +465,9 @@ PYBIND11_MODULE(ctpl_py, m) {
             .def("removeEdge", &Graph::removeEdge)
             .def("sideA", &Graph::sideA)
             .def("sideB", &Graph::sideB)
-            .def("getEdgeProps", &Graph::getEdgeProps);
+            .def("getEdgeProps", &Graph::getEdgeProps)
+            .def("shortestPath", &Graph::shortestPath)
+            .def("shortestPathLength", &Graph::shortestPathLength);
 
     pybind11::class_<ITraveller, PyTraveller, std::shared_ptr<ITraveller>>(m, "ITraveller")
             .def(pybind11::init<>())

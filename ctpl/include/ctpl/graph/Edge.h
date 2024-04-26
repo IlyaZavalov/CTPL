@@ -50,6 +50,7 @@ namespace ctpl {
 
     template<typename T>
     struct IsWeighted {
+        using underlying_type = std::nullopt_t;
         static constexpr bool value = false;
     };
 
@@ -63,7 +64,7 @@ namespace ctpl {
     struct IsPropsWeighted;
 
     template<>
-    struct IsPropsWeighted<> {
+    struct IsPropsWeighted<EdgeProps<>> {
         static constexpr bool value = false;
         using underlying_type = std::nullopt_t;
     };
@@ -71,7 +72,7 @@ namespace ctpl {
     template<typename T, typename... Args>
     struct IsPropsWeighted<EdgeProps<T, Args...>> {
         static constexpr bool value = IsWeighted<T>::value || IsPropsWeighted<EdgeProps<Args...>>::value;
-        using underlying_type = std::conditional<IsWeighted<T>::value, typename IsWeighted<T>::underlying_type, typename IsPropsWeighted<EdgeProps<Args...>>::underlying_type>;
+        using underlying_type = std::conditional_t<IsWeighted<T>::value, typename IsWeighted<T>::underlying_type, typename IsPropsWeighted<EdgeProps<Args...>>::underlying_type>;
     };
 
 }

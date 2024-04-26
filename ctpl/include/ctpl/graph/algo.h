@@ -73,53 +73,89 @@ namespace ctpl {
             typename edge_props_t,
             std::invocable<vertex_t> IsVisitedCallback,
             std::invocable<vertex_t, vertex_t> SetVisitedCallback,
-            std::invocable<vertex_t> SetDistCallback
+            std::invocable<vertex_t, typename IsPropsWeighted<edge_props_t>::underlying_type> SetDistCallback
     >
     void dijkstraCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex,
                         IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited, SetDistCallback &&set_dist) {
         using weight_t = IsPropsWeighted<edge_props_t>::underlying_type;
-        if constexpr (std::is_same_v<weight_t, std::nullopt_t>) {
-            return bfsCustom(graph, initial_vertex, std::forward<IsVisitedCallback>(is_visited),
-                             std::forward<SetVisitedCallback>(set_visited), std::forward<SetDistCallback>(set_dist));
-        } else {
-            struct PQVertex {
-                vertex_t u;
-                vertex_t v;
-                weight_t dist;
+        static_assert(IsPropsWeighted<edge_props_t>::value, "dijkstra is applicable only to weighted graphs");
+        struct PQVertex {
+            vertex_t u;
+            vertex_t v;
+            weight_t dist;
 
-                bool operator<=>(const PQVertex &other) const {
-                    return dist <=> other.dist;
-                }
-            };
-
-            std::priority_queue<PQVertex, std::vector<PQVertex>, std::greater<PQVertex>> pq;
-            pq.push({
-                            .u = initial_vertex,
-                            .v = initial_vertex,
-                            .dist = 0
-                    });
-
-            while (!pq.empty()) {
-                auto [u, v, dist] = pq.top().u;
-                pq.pop();
-                if (is_visited(v)) {
-                    continue;
-                }
-
-                set_visited(u, v);
-                set_dist(dist);
-                graph.visitAdjacentVertices(v, [&](vertex_t u1, vertex_t v1, Weighted<weight_t> w) -> bool {
-                    if (is_visited(v)) {
-                        return true;
-                    }
-                    pq.push({
-                                    .u = u1,
-                                    .v = v1,
-                                    .dist = dist + w.weight
-                            });
-                    return true;
-                });
+            auto operator<=>(const PQVertex &other) const {
+                return dist <=> other.dist;
             }
+        };
+
+        std::priority_queue<PQVertex, std::vector<PQVertex>, std::greater<PQVertex>> pq;
+        pq.push({
+                        .u = initial_vertex,
+                        .v = initial_vertex,
+                        .dist = 0
+                });
+
+        while (!pq.empty()) {
+            auto [u, v, dist] = pq.top();
+            pq.pop();
+            if (is_visited(v)) {
+                continue;
+            }
+
+            set_visited(u, v);
+            set_dist(v, dist);
+            graph.visitAdjacentVertices(v, [&](vertex_t u1, vertex_t v1, Weighted<weight_t> w) {
+                if (is_visited(v1)) {
+                    return;
+                }
+                pq.push({
+                                .u = u1,
+                                .v = v1,
+                                .dist = dist + w.weight
+                        });
+            });
         }
     }
+
+    template<typename vertex_t, typename edge_props_t>
+    auto dijkstra(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
+        std::unordered_set<vertex_t> used;
+        using weight_t = IsPropsWeighted<edge_props_t>::underlying_type;
+        std::optional<weight_t> res;
+        dijkstraCustom(graph, initial_vertex,
+                       [&](vertex_t u) {
+                           return used.contains(u);
+                       },
+                       [&](vertex_t, vertex_t v) {
+                           used.insert(v);
+                       },
+                       [&](vertex_t v, weight_t dist) {
+                           if (v == target_vertex) {
+                               res = dist;
+                           }
+                       });
+        return res;
+    }
+
+    template<typename vertex_t, typename edge_props_t>
+    std::vector<vertex_t>
+    shortestPath(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
+        std::unordered_map<vertex_t, vertex_t> parents;
+        dijkstraCustom(graph, initial_vertex, [&](vertex_t u) { return parents.contains(u); },
+                       [&](vertex_t u, vertex_t v) { parents[v] = u; }, [](vertex_t, vertex_t) {});
+        std::vector<vertex_t> path = {target_vertex};
+        if (!parents.contains(target_vertex)) {
+            return {};
+        }
+
+        std::reverse(path.begin(), path.end());
+
+        while (path.back() != initial_vertex) {
+            path.push_back(parents[path.back()]);
+        }
+
+        return path;
+    }
+
 }

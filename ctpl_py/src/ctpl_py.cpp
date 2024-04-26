@@ -451,8 +451,12 @@ PYBIND11_MODULE(ctpl_py, m) {
             .value("NOT_WEIGHTED", GraphWeight::UNWEIGHTED)
             .export_values();
 
+    pybind11::enum_<GraphTypes>(m, "TYPES")
+            .value("DIVIDED_OUTERPLANAR", GraphTypes::DIVIDED_OUTERPLANAR);
+
     pybind11::class_<GraphBuilder, std::shared_ptr<GraphBuilder>>(m, "GraphBuilder")
             .def(pybind11::init<GraphDir, GraphWeight>())
+            .def(pybind11::init<GraphTypes>())
             .def("withEdge", &GraphBuilder::withEdge)
             .def("withEdge", &GraphBuilder::withEdgeW);
 
@@ -480,6 +484,7 @@ PYBIND11_MODULE(ctpl_py, m) {
 
     pybind11::class_<IBanValidator, PyBanValidator, std::shared_ptr<IBanValidator>>(m, "IBanValidator")
             .def(pybind11::init<std::shared_ptr<PyTraveller>>())
+            .def("requestBanEdge", &IBanValidator::requestBanEdge)
             .def("tryRemove", &IBanValidator::tryRemoveEdge);
 
     pybind11::class_<IAdversary, PyAdversary, std::shared_ptr<IAdversary>>(m, "IAdversary")

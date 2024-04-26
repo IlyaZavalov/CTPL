@@ -22,7 +22,7 @@ namespace ctpl::game {
     }
 
     DividedOuterplanarBuilder &DividedOuterplanarBuilder::withSideBVec(const std::vector<default_vertex_t> &v) {
-        std::copy(v.begin(), v.end(), std::back_inserter(side_a_));
+        std::copy(v.begin(), v.end(), std::back_inserter(side_b_));
         return *this;
     }
 }

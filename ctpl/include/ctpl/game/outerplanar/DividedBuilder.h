@@ -13,6 +13,10 @@ namespace ctpl::game {
     public:
         DividedOuterplanarBuilder() = default;
 
+        DividedOuterplanarBuilder& withSideAVec(const std::vector<default_vertex_t>& v);
+
+        DividedOuterplanarBuilder& withSideBVec(const std::vector<default_vertex_t>& v);
+
         template<typename Iterator>
         DividedOuterplanarBuilder& withSideA(Iterator begin, Iterator end);
 

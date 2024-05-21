@@ -148,7 +148,7 @@ namespace ctpl::py {
             }
 
             std::vector<vertex_t> shortestPath(vertex_t s, vertex_t t) override {
-                if constexpr (IsPropsWeighted<edge_props_t>::value) {
+                if constexpr (is_props_weighted<edge_props_t>::value) {
                     return ::ctpl::shortestPath(graph_, s, t);
                 }
                 else {
@@ -157,7 +157,7 @@ namespace ctpl::py {
             }
 
             std::optional<weight_t> shortestPathLength(vertex_t s, vertex_t t) override {
-                if constexpr (IsPropsWeighted<edge_props_t>::value) {
+                if constexpr (is_props_weighted<edge_props_t>::value) {
                     if (auto w = ::ctpl::dijkstra(graph_, s, t)) {
                         return *w;
                     }

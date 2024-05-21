@@ -73,12 +73,12 @@ namespace ctpl {
             typename edge_props_t,
             std::invocable<vertex_t> IsVisitedCallback,
             std::invocable<vertex_t, vertex_t> SetVisitedCallback,
-            std::invocable<vertex_t, typename IsPropsWeighted<edge_props_t>::underlying_type> SetDistCallback
+            std::invocable<vertex_t, typename is_props_weighted<edge_props_t>::underlying_type> SetDistCallback
     >
     void dijkstraCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex,
                         IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited, SetDistCallback &&set_dist) {
-        using weight_t = IsPropsWeighted<edge_props_t>::underlying_type;
-        static_assert(IsPropsWeighted<edge_props_t>::value, "dijkstra is applicable only to weighted graphs");
+        using weight_t = is_props_weighted<edge_props_t>::underlying_type;
+        static_assert(is_props_weighted<edge_props_t>::value, "dijkstra is applicable only to weighted graphs");
         struct PQVertex {
             vertex_t u;
             vertex_t v;
@@ -121,7 +121,7 @@ namespace ctpl {
     template<typename vertex_t, typename edge_props_t>
     auto dijkstra(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
         std::unordered_set<vertex_t> used;
-        using weight_t = IsPropsWeighted<edge_props_t>::underlying_type;
+        using weight_t = is_props_weighted<edge_props_t>::underlying_type;
         std::optional<weight_t> res;
         dijkstraCustom(graph, initial_vertex,
                        [&](vertex_t u) {

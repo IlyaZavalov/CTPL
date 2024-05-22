@@ -57,7 +57,7 @@ namespace ctpl {
         static constexpr bool value = true;
     };
 
-    template<typename... Args>
+    template<typename edge_props_t>
     struct is_props_weighted;
 
     template<>
@@ -71,5 +71,11 @@ namespace ctpl {
         static constexpr bool value = is_weighted<T>::value || is_props_weighted<EdgeProps<Args...>>::value;
         using underlying_type = std::conditional_t<is_weighted<T>::value, typename is_weighted<T>::underlying_type, typename is_props_weighted<EdgeProps<Args...>>::underlying_type>;
     };
+
+    template<typename edge_props_t>
+    constexpr bool is_props_integral_weighted = is_props_weighted<edge_props_t>::value && std::is_integral_v<typename is_props_weighted<edge_props_t>::underlying_type>;
+
+    template<typename edge_props_t>
+    constexpr bool is_props_floating_weighted = is_props_weighted<edge_props_t>::value && std::is_floating_point_v<typename is_props_weighted<edge_props_t>::underlying_type>;
 
 }

@@ -6,10 +6,11 @@
 
 namespace ctpl {
     template<typename vertex_t, typename edge_props_t>
-    class DynamicGraph : public IDynamicGraph<vertex_t, edge_props_t> {
+    class DynamicGraph : public IDynamicGraph<vertex_t, edge_props_t, DynamicGraph<vertex_t, edge_props_t>> {
+        using self_t = DynamicGraph<vertex_t, edge_props_t>;
         template<typename builder_self_t>
         using Builder = GraphBuilder<vertex_t, edge_props_t, builder_self_t>;
-        using Visitor = IGraph<vertex_t, edge_props_t>::Visitor;
+        using Visitor = IGraph<vertex_t, edge_props_t, self_t>::Visitor;
     public:
 
         template<typename builder_self_t>
@@ -19,14 +20,14 @@ namespace ctpl {
             }
         }
 
-        bool isEdgeBelongs(vertex_t u, vertex_t v) const override {
+        bool isEdgeBelongs(vertex_t u, vertex_t v) const {
             if (auto it = graph_.find(u); it != graph_.end()) {
                 return it->second.contains(v);
             }
             return false;
         }
 
-        std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const override {
+        std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const {
             if (auto it = graph_.find(u); it != graph_.end()) {
                 if (auto it2 = it->second.find(v); it2 != it->second.end()) {
                     return it2->second;
@@ -36,7 +37,7 @@ namespace ctpl {
             return std::nullopt;
         }
 
-        void visitAdjacentVertices(vertex_t vertex, const Visitor& visitor) const override {
+        void visitAdjacentVertices(vertex_t vertex, const Visitor& visitor) const {
             if (auto it = graph_.find(vertex); it != graph_.end()) {
                 for (const auto& [v, props] : it->second) {
                     visitor(vertex, v, props);
@@ -44,7 +45,7 @@ namespace ctpl {
             }
         }
 
-        void visitAllEdges(const Visitor& visitor) const override {
+        void visitAllEdges(const Visitor& visitor) const {
             for (const auto& [u, list] : graph_) {
                 for (const auto& [v, props] : list) {
                     if constexpr (has_prop<Undirected, edge_props_t>) {
@@ -59,14 +60,14 @@ namespace ctpl {
             }
         }
 
-        void addEdge(vertex_t u, vertex_t v, edge_props_t props) override {
+        void addEdge(vertex_t u, vertex_t v, edge_props_t props) {
             graph_[u][v] = props;
             if constexpr (has_prop<Undirected, edge_props_t>) {
                 graph_[v][u] = props;
             }
         }
 
-        void removeEdge(vertex_t u, vertex_t v) override {
+        void removeEdge(vertex_t u, vertex_t v) {
             graph_[u].erase(v);
             if constexpr (has_prop<Undirected, edge_props_t>) {
                 graph_[v].erase(u);

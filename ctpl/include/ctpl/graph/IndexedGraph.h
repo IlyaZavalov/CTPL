@@ -9,11 +9,12 @@
 
 namespace ctpl {
     template<typename vertex_t, typename edge_props_t>
-    class IndexedGraph : IGraph<vertex_t, edge_props_t> {
+    class IndexedGraph : IGraph<vertex_t, edge_props_t, IndexedGraph<vertex_t, edge_props_t>> {
+        using self_t = IndexedGraph<vertex_t, edge_props_t>;
         using AdjVertex = AdjacentVertex<vertex_t, edge_props_t>;
         using AdjList = std::vector<AdjVertex>;
         using AdjLists = std::vector<AdjList>;
-        using Visitor = IGraph<vertex_t, edge_props_t>::Visitor;
+        using Visitor = IGraph<vertex_t, edge_props_t, self_t>::Visitor;
         using Edge = Edge<vertex_t, edge_props_t>;
         using Builder = GraphBuilder<vertex_t, edge_props_t>;
     public:

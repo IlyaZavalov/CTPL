@@ -15,11 +15,12 @@ namespace ctpl {
     template<
             typename vertex_t,
             typename edge_props_t,
+            typename impl_t,
             std::invocable<vertex_t> Visitor,
             std::invocable<vertex_t> IsVisitedCallback,
             std::invocable<vertex_t, vertex_t> SetVisitedCallback
     >
-    void dfsCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initialVertex,
+    void dfsCustom(const IGraph<vertex_t, edge_props_t, impl_t> &graph, vertex_t initialVertex,
                    Visitor &&visitor, IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited) {
         std::stack<vertex_t> stack;
         stack.push(initialVertex);
@@ -43,11 +44,12 @@ namespace ctpl {
     template<
             typename vertex_t,
             typename edge_props_t,
+            typename impl_t,
             std::invocable<vertex_t> Visitor,
             std::invocable<vertex_t> IsVisitedCallback,
             std::invocable<vertex_t, vertex_t> SetVisitedCallback
     >
-    void bfsCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initialVertex,
+    void bfsCustom(const IGraph<vertex_t, edge_props_t, impl_t> &graph, vertex_t initialVertex,
                    Visitor &&visitor, IsVisitedCallback &&isVisited, SetVisitedCallback &&setVisited) {
         std::queue<vertex_t> stack;
         stack.push(initialVertex);
@@ -71,11 +73,12 @@ namespace ctpl {
     template<
             typename vertex_t,
             typename edge_props_t,
+            typename impl_t,
             std::invocable<vertex_t> IsVisitedCallback,
             std::invocable<vertex_t, vertex_t> SetVisitedCallback,
             std::invocable<vertex_t, typename is_props_weighted<edge_props_t>::underlying_type> SetDistCallback
     >
-    void dijkstraCustom(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex,
+    void dijkstraCustom(const IGraph<vertex_t, edge_props_t, impl_t> &graph, vertex_t initial_vertex,
                         IsVisitedCallback &&is_visited, SetVisitedCallback &&set_visited, SetDistCallback &&set_dist) {
         using weight_t = is_props_weighted<edge_props_t>::underlying_type;
         static_assert(is_props_weighted<edge_props_t>::value, "dijkstra is applicable only to weighted graphs");
@@ -118,8 +121,8 @@ namespace ctpl {
         }
     }
 
-    template<typename vertex_t, typename edge_props_t>
-    auto dijkstra(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
+    template<typename vertex_t, typename edge_props_t, typename impl_t>
+    auto dijkstra(const IGraph<vertex_t, edge_props_t, impl_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
         std::unordered_set<vertex_t> used;
         using weight_t = is_props_weighted<edge_props_t>::underlying_type;
         std::optional<weight_t> res;
@@ -138,9 +141,9 @@ namespace ctpl {
         return res;
     }
 
-    template<typename vertex_t, typename edge_props_t>
+    template<typename vertex_t, typename edge_props_t, typename impl_t>
     std::vector<vertex_t>
-    shortestPath(const IGraph<vertex_t, edge_props_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
+    shortestPath(const IGraph<vertex_t, edge_props_t, impl_t> &graph, vertex_t initial_vertex, vertex_t target_vertex) {
         std::unordered_map<vertex_t, vertex_t> parents;
         dijkstraCustom(graph, initial_vertex, [&](vertex_t u) { return parents.contains(u); },
                        [&](vertex_t u, vertex_t v) { parents[v] = u; }, [](vertex_t, vertex_t) {});

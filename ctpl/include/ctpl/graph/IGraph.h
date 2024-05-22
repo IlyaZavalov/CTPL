@@ -8,23 +8,28 @@
 namespace ctpl {
     /**
      * @brief Base interface for graphs used in CTPL
-     * @todo CTPL is based on templates, so static polymorphism would be more appropriate there
      */
-    template<typename vertex_t, typename edge_props_t = EdgeProps<Undirected>> //TODO concepts
+    template<typename vertex_t, typename edge_props_t, typename impl_t> //TODO concepts
     class IGraph {
     public:
         using vertex = vertex_t;
         using edge_props = edge_props_t;
         using Visitor = std::function<void(vertex_t, vertex_t, edge_props_t)>;
 
-        virtual ~IGraph() = default;
+        void visitAllEdges(const Visitor &visitor) const {
+            static_cast<const impl_t*>(this)->visitAllEdges(visitor);
+        }
 
-        virtual void visitAllEdges(const Visitor &visitor) const = 0;
+        void visitAdjacentVertices(vertex_t vertex, const Visitor &visitor) const {
+            static_cast<const impl_t*>(this)->visitAdjacentVertices(vertex, visitor);
+        }
 
-        virtual void visitAdjacentVertices(vertex_t vertex, const Visitor &visitor) const = 0;
+        bool isEdgeBelongs(vertex_t u, vertex_t v) const {
+            return static_cast<const impl_t*>(this)->isEdgeBelongs(u, v);
+        }
 
-        virtual bool isEdgeBelongs(vertex_t u, vertex_t v) const = 0;
-
-        virtual std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const = 0;
+        std::optional<edge_props_t> getEdgeProps(vertex_t u, vertex_t v) const {
+            return static_Cast<const impl_t*>(this)->getEdgeProps(u, v);
+        }
     };
 }
